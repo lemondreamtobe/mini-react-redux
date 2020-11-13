@@ -303,7 +303,7 @@ export default  HeaderWrapper
 - connect根据传入的mapStateToProps，mapDispatchToProps，Header返回一个高阶组件，并且mapStateToProps，mapDispatchToProps配置的属性和方法进行注入
 - 返回的高阶组件可以跟store相互通信。
 
-第一点可以如下简单实现
+可以如下简单实现
 
 ```
 function connectHoc (mapStateToProps = () => ({}), mapDispatchToProps = () => ({})) {
