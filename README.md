@@ -506,6 +506,6 @@ export default function connectHoc(mapStateToProps = () => ({}), mapDispatchToPr
 为什么放到最后因为笔者认为这不是一个什么很硬核的内容，反而要多记一两个概念没要必要。前面说了，react的开发工作流核心都在于state以及改变state的方法，react-redux只是根据这个方法结合redux应用而生的罢了。用connect去连接组件，让他负责监听，监听完了把数据通过props传入简单的组件去展示。如此而已，并无奥妙。
 
 ## 总结。
-前面学习了redux，再到结合redux和react的协作场景出发，大致把react-redux的工作流走了一遍，当然，react-redux不会这么简短，里面的设计还是非常复杂的，但是都逃不脱以上的步骤，官方react-redux使用了subscription去订阅布，判断和记忆前后Props的方式也不一样。最后分享一点感慨，不管是redux还是react-redux，都是从1 2处很小的使用场景和功能出发，但是为了能优雅的普适于诸多场景，其背后却充满设计。这点值得深思，这就是能用和很好用的差别吧。
+前面学习了redux，再到结合redux和react的协作场景出发，大致把react-redux的工作流走了一遍，当然，react-redux不会这么简短，里面的设计还是非常复杂的，但是都逃不脱以上的步骤，官方react-redux使用了subscription去订阅布，判断和记忆前后Props的方式也不一样。最后分享一点感慨，不管是redux还是react-redux，都是从1 2处很小的使用场景和功能出发，但是为了能优雅的普适于诸多场景，其背后却充满设计。这点值得深思，这就是代码设计能用和很好用的差别吧。
 <br />
-如果本文有些许帮助 别忘了点赞哦，本文所有代码都在github可见[mini-react-redux]('https://github.com/lemondreamtobe/mini-react-redux')
+如果本文有些许帮助 别忘了点赞哦，本文所有代码都在github可见[mini-react-redux](https://github.com/lemondreamtobe/mini-react-redux)
