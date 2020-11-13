@@ -1,11 +1,11 @@
 # 揭秘Redux怎么和React协作
-> React需要数据状态管理，因为组件化开发，不可避免的会遇到夸层级的数据通信，用一个统一的数据状态管理代替层层传入的props的方式更加利于维护和优雅。笔者认为，React不一定非得使用Redux，但凡实现了数据状态管理并且提供了足够的开放能力比如钩子、观察者、中间件等都可以与React结合，单纯来说，只实现了数据管理+观察者便足矣。至于为什么使用Redux，可能是因为他使用的广吧。本文将分析两者之间如何协作，以及解析社区已经封装好了的库react-redux。如果对redux感兴趣的话，可以翻阅上一篇文章[从0到1重新撸一个redux](https://www.yuque.com/lemon-nfzit/uwwtaw/wflm60)
+> React需要数据状态管理，因为组件化开发，不可避免的会遇到跨层级的数据通信，用一个统一的数据状态管理代替层层传入的props的方式更加利于维护和优雅。笔者认为，React不一定非得使用Redux，但凡实现了数据状态管理并且提供了足够的开放能力比如钩子、观察者、中间件等都可以与React结合，单纯来说，只实现了数据管理+观察者的工具便足以与React握手合作。至于为什么使用Redux，可能是因为他使用的广吧。本文将分析两者之间如何协作，以及解析社区已经封装好了的库react-redux。如果对redux感兴趣的话，可以翻阅上一篇文章[从0到1重新撸一个redux](https://www.yuque.com/lemon-nfzit/uwwtaw/wflm60)
 <br />
 <br />
 > 还是老样子，本文先不谈react-redux源码，先从应用场景出发
 
 ## 先把组件跟redux连接起来
-熟悉react的开发者都知道，react主张单向数据流，通过改变state可以重新出发render更新视图，对于组件化开发模式，通过state数据传入子组件props来传递数据，通过父组件封装的setState改变state更新视图。所以说，核心都在于state以及改变state的方法。于是乎我们得出连接的方式：
+熟悉react的开发者都知道，react主张单向数据流，通过改变state可以重新触发render更新视图，对于组件化开发模式，通过state数据传入子组件props来传递数据，通过父组件封装的setState改变state更新视图。所以说，核心都在于state以及改变state的方法。于是乎我们得出连接的方式：
 - 把store的数据跟state连接
 - 监听store更新来改变state
 来看看怎么实现吧：
@@ -107,13 +107,11 @@ export default class App extends React.Component {
 }
  
 ```
-看吧，如此一来同级组件的数据通信问题美妙解决，别看上面的例子很短小，如果组件层级过多过深，层层传递props的做法简直难受。<br />
-![pg1](./images/pg1.png) ![pg2](./images/pg2.png)
-<br />
-这应该算是react-redux最基础的实现了。当然不可能会这么简单
+看吧，如此一来同级组件的数据通信问题美妙解决，但是还不够适用。因为上面的例子很短小，如果组件层级过多过深，层层传递props的做法简直难受。需要把store一个个丢进去<br />
+
 
 ## 更合理的连接方式
-上面的设计固然可用，但是我们试想，一个大型的复杂项目，组件少说几十多辄上千，需要统一管理的数据肯定是非常多的，对于需要使用store数据的组件更是多如牛毛，不可能对这些组件每个都进行读store和注册监听吧。于是乎我们需要设计一种更加合理，无侵入式的连接方法。
+上面的设计固然可用，但是我们试想，一个大型的复杂项目，组件少说几十多辄上千，需要统一管理的数据肯定是非常多的，对于需要使用store数据的组件更是多如牛毛，不可能对这些组件每个都进行读store和注册监听吧。于是乎我们需要设计一种更加合理，无侵入式的连接方法，基于这个场景触发我们大胆提出以下功能。
 - 最顶层的组件统一挂载store，让后续所有层级的子组件都可以访问整个store
 - 对需要连接store的组件提供一个更友好的api，而非侵入式的写入constructor和生命周期
 
@@ -253,8 +251,8 @@ export default Provider
 createContext作用如下，也可以直接查看官方文档[React.createContext](https://zh-hans.reactjs.org/docs/context.html#reactcreatecontext)
 ![context](./images/context.png)
 
-### 无侵入的让需要的组件进行连接 - connect
-先看看怎么使用吧
+### 好了开始无侵入的让需要的组件进行连接 - connect
+先看看怎么使用吧，再从使用的场景出去反推实现
 ```
 import React from 'react'
 import { store } from './redux';
@@ -413,6 +411,7 @@ function mergedPropsFactory() {
   
   return (newStateProps, newDispatchProps, newOwnProps) => {
     
+    // 第一次直接返回新的props 让他去渲染吧
     if (!hasOnceRun) {
       stateProps = newStateProps
       dispatchProps = newDispatchProps
@@ -422,6 +421,7 @@ function mergedPropsFactory() {
       return mergedProps
     }
     
+    // 前后对比判断是否需要被渲染
     if (shallowEqual(stateProps, newStateProps) && shallowEqual(ownProps, newOwnProps)) {
       stateProps = newStateProps
       dispatchProps = newDispatchProps
@@ -490,3 +490,22 @@ export default function connectHoc(mapStateToProps = () => ({}), mapDispatchToPr
     }
 }
 ```
+来看看效果吧:
+最开始的效果
+![1](./images/f1.png)
+<br />
+点击header组件试试
+![2](./images/f2.png)
+<br />
+点击bottom组件试试
+![3](./images/f3.png)
+<br />
+可以知道 触发header组件改变相应的store props但是Bottom组件不会重新更新，反之亦然，互不影响。
+
+## 放到最后再来谈谈容器组件和展示组件
+为什么放到最后因为笔者认为这不是一个什么很硬核的内容，反而要多记一两个概念没要必要。前面说了，react的开发工作流核心都在于state以及改变state的方法，react-redux只是根据这个方法结合redux应用而生的罢了。用connect去连接组件，让他负责监听，监听完了把数据通过props传入简单的组件去展示。如此而已，并无奥妙。
+
+## 总结。
+前面学习了redux，再到结合redux和react的协作场景出发，大致把react-redux的工作流走了一遍，当然，react-redux不会这么简短，里面的设计还是非常复杂的，但是都逃不脱以上的步骤，官方react-redux使用了subscription去订阅布，判断和记忆前后Props的方式也不一样。最后分享一点感慨，不管是redux还是react-redux，都是从1 2处很小的使用场景和功能出发，但是为了能优雅的普适于诸多场景，其背后却充满设计。这点值得深思，这就是能用和很好用的差别吧。
+<br />
+> 如果本文有些许帮助 别忘了点赞哦，本文所有代码都在github可见[mini-react-redux]('https://github.com/lemondreamtobe/mini-react-redux')
